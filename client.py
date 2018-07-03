@@ -27,5 +27,5 @@ while True :
     data, addr = sock.recvfrom(1024)
     print("received data:", data)
     sock.close()
-    break
+
 
