@@ -1,7 +1,7 @@
 import socket
 
 
-UDP_IP = bytes("127.0.0.1", 'utf-8')
+UDP_IP = bytes("172.23.157.80", 'utf-8')
 UDP_PORT = 5005
 
 sock = socket.socket(socket.AF_INET, # Internet
