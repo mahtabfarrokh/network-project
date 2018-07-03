@@ -1,5 +1,5 @@
 import socket
-
+import time
 
 UDP_IP = bytes("172.23.157.80", 'utf-8')
 UDP_PORT = 5006
@@ -10,6 +10,7 @@ sock.bind((UDP_IP, UDP_PORT))
 
 while True:
     data, addr = sock.recvfrom(1024)# buffer size is 1024 bytes
+    sock.close()
     if data:
 
         data = str(data).split("@")
@@ -25,4 +26,15 @@ while True:
         s.send(MESSAGE)
         data = s.recv(BUFFER_SIZE)
         s.close()
-        print("received data:", data)
+        # print("received data:", data)
+
+        for i in range(1, 2):
+            UDP_PORT = 5007
+            time.sleep(1)
+            sock = socket.socket(socket.AF_INET,  # Internet
+                                 socket.SOCK_DGRAM)  # UDP
+            sock.sendto(data, (UDP_IP, UDP_PORT))
+            sock.close()
+        break
+
+

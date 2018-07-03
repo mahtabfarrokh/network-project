@@ -17,4 +17,15 @@ for i in range(1, 2):
     sock = socket.socket(socket.AF_INET,  # Internet
                      socket.SOCK_DGRAM)  # UDP
     sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+    sock.close()
+
+while True :
+    UDP_PORT = 5007
+    sock = socket.socket(socket.AF_INET,  # Internet
+                         socket.SOCK_DGRAM)  # UDP
+    sock.bind((UDP_IP, UDP_PORT))
+    data, addr = sock.recvfrom(1024)
+    print("received data:", data)
+    sock.close()
+    break
 
