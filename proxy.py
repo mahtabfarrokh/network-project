@@ -1,7 +1,7 @@
 import socket
 import time
 
-UDP_IP = bytes("172.23.157.80", 'utf-8')
+UDP_IP = bytes("172.23.157.79", 'utf-8')
 UDP_PORT = 5016
 TCP_PORT = 80
 TCP_IP = ''
@@ -61,10 +61,7 @@ while True:
         if MF == 0:
             break
 
-
 print("real data : ", realdata)
-
-
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
@@ -75,6 +72,11 @@ s.close()
 UDP_PORT = 5007
 sock = socket.socket(socket.AF_INET,  # Internet
                         socket.SOCK_DGRAM)  # UDP
-sock.sendto(data, (UDP_IP, UDP_PORT))
+
+newdata = str(data)
+newdata = newdata.split('\'')
+checksum = checksum(newdata[1])
+newdata2 = bytes(newdata[1] + '@' + str(checksum),'utf_8')
+sock.sendto(newdata2, (UDP_IP, UDP_PORT))
 print("received data:", data)
 sock.close()

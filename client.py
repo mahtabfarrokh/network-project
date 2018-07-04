@@ -1,6 +1,7 @@
 import socket
 import time
-UDP_IP = bytes("172.23.157.80", 'utf-8')
+
+UDP_IP = bytes("172.23.157.79", 'utf-8')
 timeout = 50
 address ="www.ceit.aut.ac.ir"
 port = str(80)
@@ -8,8 +9,9 @@ NS = 0
 MF = 0  # More fragment
 iteration = 2
 data = 'GET / HTTP/1.0\r\n\r\n'
+newdata = ''
 
-def checksum(MESSAGE) :
+def checksum1(MESSAGE) :
     c = 0
 
     for x in MESSAGE:
@@ -39,7 +41,7 @@ for i in range(1, iteration):
     print('HERE' , msg)
     cmsg = msg.split('\r\n\r\n')
     print(cmsg[0])
-    checksum = checksum(cmsg[0])
+    checksum = checksum1(cmsg[0])
     newmsg = msg + '@' + str(checksum)
     MESSAGE = bytes(newmsg, 'utf-8')
 
@@ -74,12 +76,18 @@ for i in range(1, iteration):
         print("received data:", NR)
 
 while True:
-    print("here")
+
     UDP_PORT = 5007
     sock = socket.socket(socket.AF_INET,  # Internet
                            socket.SOCK_DGRAM)  # UDP
     sock.bind((UDP_IP, UDP_PORT))
     data, addr = sock.recvfrom(1024)
+    newdata = str(data)
+    newdata = newdata.split('\'')
+    newdata2 = newdata[1].split('@')
+    checks = checksum1(newdata2[0])
+    if checks != newdata2[1] :
+        print('error!')
     print("received data:", data)
     sock.close()
     break
