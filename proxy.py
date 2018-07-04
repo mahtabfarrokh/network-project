@@ -110,5 +110,5 @@ else:
             for rdata in myAnswers:  # for each response
                 result += str(rdata) + ' '
                 print(rdata)  # print the data
-            conn.send(bytes(result, 'utf-8')) # echo
+            conn.send(bytes(result, 'utf-8'))# echo
     conn.close()
