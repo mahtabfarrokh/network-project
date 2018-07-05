@@ -2,7 +2,7 @@ import socket
 import time
 import requests
 
-turn = 1
+turn = 0
 IP = '192.168.1.33'
 # IP = '192.168.1.55'
 
@@ -11,7 +11,7 @@ IP = '192.168.1.33'
 if turn:
     UDP_IP = bytes(IP, 'utf-8')
     timeout = 50
-    address = 'www.aut.ac.ir'
+    address = 'www.google.com'
     port = str(80)
     NS = 0
     MF = 0  # More fragment
@@ -95,11 +95,10 @@ if turn:
         newdata = newdata.split('\'')
         newdata2 = newdata[1].split('@')
         checks = checksum1(newdata2[0])
-        # if checks != newdata2[1]:
-        #     print('error!')
         print('received data:', data)
         sock.close()
         break
+
 else:
     type = 'CNAME'
     target = 'www.soft98.ir'

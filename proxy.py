@@ -13,7 +13,13 @@ TCP_IP = ''
 realdata = ''
 realdata1 = ''
 NR = 1
-turn = 1
+turn = 0
+index = 0
+dnsindex = 0
+httpCache = []
+DNSCache = []
+inCache = 0
+inDNSCache = 0
 
 def checksum(MESSAGE):
     c = 0
@@ -25,7 +31,13 @@ def checksum(MESSAGE):
     return csum[1]
 
 
+
 def responseToClient(data) :
+
+    UDP_PORT = 5007
+    sock = socket.socket(socket.AF_INET,  # Internet
+                         socket.SOCK_DGRAM)  # UDP
+
     newdata = str(data)
     newdata = newdata.split('\'')
     splitedData = newdata[1].split(' ')
@@ -73,6 +85,7 @@ def responseToClient(data) :
 
 if turn:
     while True:
+
         UDP_PORT = 5016
         BUFFER_SIZE = 1024
         sock = socket.socket(socket.AF_INET,  # Internet
@@ -94,8 +107,8 @@ if turn:
                 data[3]) + '@' + str(data[4])
 
             cmsg = realdata1.split('\\')
+            cacheSaveMsg = realdata1.split('\\')[0]
 
-            print(realdata1)
             print("received message:", MESSAGE)
             print("tcpIP: ", TCP_IP)
             print("tcpPORT", TCP_PORT)
@@ -115,30 +128,42 @@ if turn:
 
     print("real data : ", realdata[0:])
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print(TCP_IP)
-    s.connect((TCP_IP, TCP_PORT))
 
-    # we just send get request :)
-    s.send(bytes('GET / HTTP/1.0\r\n\r\n', 'utf-8'))
+    for i in httpCache:
+        if cacheSaveMsg in i:
+            print('here', httpCache)
+            responseToClient(i[1])
+            inCache = 1
 
-    data = s.recv(BUFFER_SIZE)
-    s.close()
 
-    UDP_PORT = 5007
-    sock = socket.socket(socket.AF_INET,  # Internet
-                         socket.SOCK_DGRAM)  # UDP
+    if inCache == 0  : # if not in cache
 
-    # newdata = str(data)
-    # newdata = newdata.split('\'')
-    # checksum = checksum(newdata[1])
-    # newdata2 = bytes(newdata[1] + '@' + str(checksum), 'utf_8')
-    # sock.sendto(newdata2, (UDP_IP, UDP_PORT))
-    # print("received data:", data)
-    # sock.close()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print(TCP_IP)
+        s.connect((TCP_IP, TCP_PORT))
 
-    responseToClient(data)
+        # we just send get request :)
+        s.send(bytes('GET / HTTP/1.0\r\n\r\n', 'utf-8'))
 
+        data = s.recv(BUFFER_SIZE)
+        s.close()
+        # print('old cache',httpCache)
+
+        # save data in cache
+        if len(httpCache) < 10 :
+            httpCache.append([cacheSaveMsg,data])
+        elif len(httpCache) == 10 :
+            del httpCache[index]
+            httpCache.insert(index,[cacheSaveMsg,data])
+            index = index + 1
+            if index == 10 :
+                index = 0
+        # print('index',index)
+        # print('new cache',httpCache)
+
+        responseToClient(data)
+
+    inCache = 0
 
 else:
 
@@ -166,15 +191,35 @@ else:
             print('target: ', target)
             myResolver = dns.resolver.Resolver()  # create a new instance named 'myResolver'
             myResolver.timeout = 0.01
-            while True:
-                try:
-                    myAnswers = myResolver.query(target, type)  # Lookup the 'A' record(s) for google.com
-                    break
-                except dns.exception.Timeout:
-                    print('time out')
-            result = ''
-            for rdata in myAnswers:  # for each response
-                result += str(rdata) + ' '
-                print(rdata)  # print the data
-            conn.send(bytes(result, 'utf-8'))  # echo
+
+            for i in DNSCache:
+                if data in i:
+                    print('here', DNSCache)
+                    conn.send(bytes(i[1], 'utf-8'))
+                    inDNSCache = 1
+
+            if (inDNSCache == 0) :   #if not in cache
+                while True:
+                    try:
+                        myAnswers = myResolver.query(target, type)  # Lookup the 'A' record(s) for google.com
+                        break
+                    except dns.exception.Timeout:
+                        print('time out')
+                result = ''
+                for rdata in myAnswers:  # for each response
+                    result += str(rdata) + ' '
+                    print(rdata)  # print the data
+
+                # save data in cache
+                if len(DNSCache) < 10:
+                    DNSCache.append([data, result])
+                elif len(httpCache) == 10:
+                    del httpCache[dnsindex]
+                    DNSCache.insert(dnsindex, [data, result])
+                    dnsindex = dnsindex + 1
+                    if dnsindex == 10:
+                        dnsindex = 0
+
+                conn.send(bytes(result, 'utf-8'))  # echo
+            inDNSCache = 0
     conn.close()
