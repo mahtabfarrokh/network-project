@@ -37,8 +37,6 @@ def response_to_client(data):
     print("------------------>>>>>>>")
     print(data)
     udp_port = 5017
-    sock = socket.socket(socket.AF_INET,  # Internet
-                         socket.SOCK_DGRAM)  # UDP
 
     newdata = str(data)
     newdata = newdata.split('\'')
@@ -54,7 +52,7 @@ def response_to_client(data):
         # print("received data:", data)
         # sock.close()
 
-        segment_size = 15
+        segment_size = 200
         print("leeeeeeeeeeeeen:")
         print(len(data))
         if len(data) > segment_size:
@@ -65,9 +63,6 @@ def response_to_client(data):
                 MF = 0
 
         data = str(data)[2:-1]
-        print("====================")
-        print(data)
-        print("====================")
         for i in range(1, iteration):
             if i == iteration - 1:
                 MF = 0
@@ -75,20 +70,18 @@ def response_to_client(data):
             end = i * segment_size
             if end > len(data):
                 end = len(data)
-            print("====================")
-            print(data[start:end])
-            print("====================")
+
             msg = str(NS) + '@' + str(MF) + '@' + data[start:end]
-            print('HERE', msg)
-            print('check', msg)
+            csum = checksum(msg)
             msg = msg.replace('\\n', '\n')
             msg = msg.replace('\\r', '\r')
-            csum = checksum(msg)
+            msg = msg.replace('\\\\', '\\')
             # msg = msg + '\r\n\r\n'
             newmsg = msg + '@' + str(csum) + '\r\n\r\n'
             MESSAGE = bytes(newmsg, 'utf-8')
 
-            print('message with checksum :', MESSAGE)
+            sock = socket.socket(socket.AF_INET,  # Internet
+                                 socket.SOCK_DGRAM)  # UDP
 
             sock.sendto(MESSAGE, (UDP_IP, udp_port))
             sock.close()
@@ -104,14 +97,11 @@ def response_to_client(data):
                 try:
                     data2, addr = sock.recvfrom(1024)
                     NR = str(data2)[2]
-                    print('ack : ', NR, NS)
                     sock.close()
-                    print("NR & NS :", NR, int(not bool(NS)))
                     if int(NR) == int(not bool(NS)):
                         NS = int(NR)
                         print("ssssaaaallllaaaavvvvaaaaatttt")
                         break
-
                     print("received data:", NR)
                 except socket.timeout:
                     print('timeout')
@@ -124,11 +114,15 @@ def response_to_client(data):
 
     elif int(response_type) == 404:
         print('error not found , code = 404 !')
+        sock = socket.socket(socket.AF_INET,  # Internet
+                             socket.SOCK_DGRAM)  # UDP
         sock.sendto(bytes('error not found !', 'utf_8'), (UDP_IP, udp_port))
         sock.close()
 
     elif int(response_type) == 400:
         print('bad req , code = 400 !')
+        sock = socket.socket(socket.AF_INET,  # Internet
+                             socket.SOCK_DGRAM)  # UDP
         sock.sendto(bytes('bad request !', 'utf_8'), (UDP_IP, udp_port))
         sock.close()
 
