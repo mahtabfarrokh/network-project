@@ -2,14 +2,16 @@ import socket
 import time
 import requests
 
-turn = 0
-# IP = "172.23.157.80"
-IP = '192.168.1.55'
+turn = 1
+IP = '192.168.1.33'
+# IP = '192.168.1.55'
+
+
 
 if turn:
     UDP_IP = bytes(IP, 'utf-8')
     timeout = 50
-    address = 'aut.ac.ir'
+    address = 'www.aut.ac.ir'
     port = str(80)
     NS = 0
     MF = 0  # More fragment
@@ -93,8 +95,8 @@ if turn:
         newdata = newdata.split('\'')
         newdata2 = newdata[1].split('@')
         checks = checksum1(newdata2[0])
-        if checks != newdata2[1]:
-            print('error!')
+        # if checks != newdata2[1]:
+        #     print('error!')
         print('received data:', data)
         sock.close()
         break
