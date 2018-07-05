@@ -1,8 +1,10 @@
 import socket
 import time
 import dns.resolver
+import requests
 
-UDP_IP = bytes("172.23.157.80", 'utf-8')
+IP = '192.168.1.55'
+UDP_IP = bytes(IP, 'utf-8')
 UDP_PORT = 5016
 TCP_PORT = 80
 TCP_IP = ''
@@ -11,17 +13,16 @@ realdata1 = ''
 NR = 1
 turn = 0
 
-def checksum(MESSAGE) :
+def checksum(MESSAGE):
     c = 0
 
     for x in MESSAGE:
         c = c + ord(x)
-    checksum = bin(c)
-    checksum = checksum.split('b')
+    csum = bin(c)
+    csum = csum.split('b')
+    return csum[1]
 
-    return checksum[1]
 if turn:
-
     while True:
         UDP_PORT = 5016
         BUFFER_SIZE = 1024
@@ -65,26 +66,71 @@ if turn:
 
     print("real data : ", realdata)
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((TCP_IP, TCP_PORT))
-    s.send(bytes(realdata, 'utf-8'))
-    data = s.recv(BUFFER_SIZE)
-    s.close()
+    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # s.connect((TCP_IP, TCP_PORT))
+    # s.send(bytes(realdata, 'utf-8'))
+    # data = s.recv(BUFFER_SIZE)
+    # s.close()
+    #
+    # UDP_PORT = 5007
+    # sock = socket.socket(socket.AF_INET,  # Internet
+    #                      socket.SOCK_DGRAM)  # UDP
+    #
+    # newdata = str(data)
+    # newdata = newdata.split('\'')
+    # checksum = checksum(newdata[1])
+    # newdata2 = bytes(newdata[1] + '@' + str(checksum), 'utf_8')
+    # sock.sendto(newdata2, (UDP_IP, UDP_PORT))
+    # print("received data:", data)
+    # sock.close()
+
+    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # s.connect((TCP_IP, TCP_PORT))
+    # s.send(bytes(realdata, 'utf-8'))
+    # data = s.recv(BUFFER_SIZE)
+    # data.
+    # s.close()
+
+
+    addr = str(TCP_IP).split('\'')
+    print(addr[1])
+    addr = 'https://' + addr[1]
+    print(addr)
+    r = requests.get(addr)
+    print('response', r.text)
 
     UDP_PORT = 5007
     sock = socket.socket(socket.AF_INET,  # Internet
                          socket.SOCK_DGRAM)  # UDP
 
-    newdata = str(data)
-    newdata = newdata.split('\'')
-    checksum = checksum(newdata[1])
-    newdata2 = bytes(newdata[1] + '@' + str(checksum), 'utf_8')
-    sock.sendto(newdata2, (UDP_IP, UDP_PORT))
-    print("received data:", data)
-    sock.close()
+    # newdata = str(data)
+    # newdata = newdata.split('\'')
+    # responseType = newdata[1].split(' ')
+
+    if r.status_code == 200:
+        checksum = checksum(newdata[1])
+        newdata2 = bytes(newdata[1] + '@' + str(checksum), 'utf_8')
+        sock.sendto(newdata2, (UDP_IP, UDP_PORT))
+        print("received data:", data)
+        sock.close()
+
+    elif int(responseType[1]) == 404:
+        sock.sendto(bytes('error!'), (UDP_IP, UDP_PORT))
+
+    elif int(responseType[1]) == 400:
+        sock.sendto(bytes('bad request!'), (UDP_IP, UDP_PORT))
+
+    elif int(responseType[1]) == 301 or int(responseType[1]) == 302:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((TCP_IP, TCP_PORT))
+        s.send(bytes(realdata, 'utf-8'))
+        data = s.recv(BUFFER_SIZE)
+        s.close()
+
 else:
-    TCP_IP = bytes("172.23.157.80", 'utf-8')
-    TCP_PORT = 5010
+
+    TCP_IP = bytes(IP, 'utf-8')
+    TCP_PORT = 5012
     BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -94,6 +140,7 @@ else:
     conn, addr = s.accept()
     print('Connection address:', addr)
     while 1:
+
         data = conn.recv(BUFFER_SIZE)
         if not data:
             break
@@ -102,13 +149,19 @@ else:
             data1 = str(data).split('@')
             type = str(data1[0][2:])
             target = str(data1[1])
-            print("type: ", type)
-            print("target: ", target)
+            print('type: ', type)
+            print('target: ', target)
             myResolver = dns.resolver.Resolver()  # create a new instance named 'myResolver'
-            myAnswers = myResolver.query(target, type)  # Lookup the 'A' record(s) for google.com
+            myResolver.timeout = 0.01
+            while True:
+                try:
+                    myAnswers = myResolver.query(target, type)  # Lookup the 'A' record(s) for google.com
+                    break
+                except dns.exception.Timeout:
+                    print('time out')
             result = ''
             for rdata in myAnswers:  # for each response
                 result += str(rdata) + ' '
                 print(rdata)  # print the data
-            conn.send(bytes(result, 'utf-8'))# echo
+            conn.send(bytes(result, 'utf-8'))  # echo
     conn.close()

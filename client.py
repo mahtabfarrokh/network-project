@@ -1,12 +1,15 @@
 import socket
 import time
+import requests
 
 turn = 0
+# IP = "172.23.157.80"
+IP = '192.168.1.55'
 
 if turn:
-    UDP_IP = bytes("172.23.157.80", 'utf-8')
+    UDP_IP = bytes(IP, 'utf-8')
     timeout = 50
-    address = "www.ceit.aut.ac.ir"
+    address = 'aut.ac.ir'
     port = str(80)
     NS = 0
     MF = 0  # More fragment
@@ -34,8 +37,8 @@ if turn:
         UDP_PORT = 5016
         if i == iteration - 1:
             MF = 0
-        print("UDP target IP:", UDP_IP)
-        print("UDP target port:", UDP_PORT)
+        print('UDP target IP:', UDP_IP)
+        print('UDP target port:', UDP_PORT)
         start = (i - 1) * 65000
         end = i * 65000
         msg = address + '@' + port + '@' + str(NS) + '@' + str(MF) + '@' + data[start:end]
@@ -48,7 +51,7 @@ if turn:
         newmsg = msg + '@' + str(checksum)
         MESSAGE = bytes(newmsg, 'utf-8')
 
-        print("message with checksum :", MESSAGE)
+        print('message with checksum :', MESSAGE)
         sock = socket.socket(socket.AF_INET,  # Internet
                              socket.SOCK_DGRAM)  # UDP
         sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
@@ -62,10 +65,10 @@ if turn:
             try:
                 data, addr = sock.recvfrom(1024)
             except socket.timeout:
-                print("timeout")
+                print('timeout')
 
             NR = int(data)
-            print("ack : ", NR, NS)
+            print('ack : ', NR, NS)
             sock.close()
             if NR == int(not bool(NS)):
                 NS = NR
@@ -92,14 +95,14 @@ if turn:
         checks = checksum1(newdata2[0])
         if checks != newdata2[1]:
             print('error!')
-        print("received data:", data)
+        print('received data:', data)
         sock.close()
         break
 else:
-    type = 'NS'
+    type = 'CNAME'
     target = 'www.soft98.ir'
-    TCP_IP = bytes('172.23.157.80', 'utf-8')
-    TCP_PORT = 5010
+    TCP_IP = bytes(IP, 'utf-8')
+    TCP_PORT = 5012
     BUFFER_SIZE = 1024
     MESSAGE = bytes(type + '@' + target + '@', 'utf-8')
 
@@ -108,4 +111,4 @@ else:
     s.send(MESSAGE)
     data = s.recv(BUFFER_SIZE)
     s.close()
-    print("received data:", data)
+    print('received data:', data)
