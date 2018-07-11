@@ -17,18 +17,21 @@ class Client:
         self.dns_type = ''
         self.dns_server = ''
         self.dns_target = ''
-        self.IP = '192.168.1.55'
+        self.IP = '192.168.1.33'
         self.file = open("index.txt", "w")
 
         # IP = '192.168.1.55'
         # proxy -s udp:172.23.157.80:5016 -d tcp
         # GET / HTTP/1.1
         # www.google.com
+
+
     def get_input(self):
+
         request = input('enter request : \n')
         host = input()
-        request = "GET / HTTP/1.1"
-        host = "stackoverflow.com"
+        request = "type=A server=127.215.155.155 target=www.google.com‬‬"
+        # host = "stackoverflow.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
         if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
@@ -36,10 +39,14 @@ class Client:
             self.address = host
             self.message = request
             return True
-        elif len(dns_req) == 3 and dns_req[0].split('=')[0] == 'type':
+        print(dns_req[0].split('=')[0] , len(dns_req))
+        if len(dns_req) == 3 and dns_req[0].split('=')[0] == 'type':
             self.DNS_request = True
+            print(dns_req[0].split('=')[1])
             self.dns_type = dns_req[0].split('=')[1]
+            print(dns_req[1].split('=')[1])
             self.dns_server = dns_req[1].split('=')[1]
+            print(dns_req[2].split('=')[1])
             self.dns_target = dns_req[2].split('=')[1]
             return True
         return False
@@ -206,4 +213,4 @@ class Client:
 if __name__ == "__main__":
 
     client = Client()
-    client.send_and_recieve_req()
+client.send_and_recieve_req()

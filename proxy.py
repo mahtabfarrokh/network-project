@@ -10,7 +10,7 @@ class Proxy :
 
         #monireIP = '192.168.1.33'
         #mahtabIP = '192.168.1.55'
-
+        self.IP = ''
         self.UDP_IP = ''
         self.UDP_PORT = 0
         self.TCP_PORT = 80
@@ -142,14 +142,14 @@ class Proxy :
 
                         print('timeout')
                         print('retransmit: ')
-                        break
+                        # break
                         UDP_PORT = 5018
                         sock = socket.socket(socket.AF_INET,  # Internet
                                              socket.SOCK_DGRAM)  # UDP
                         sock.sendto(MESSAGE, (self.UDP_IP, UDP_PORT))
                         sock.close()
             self.file.close()
-        elif int(response_type) == 404:
+        elif int(response_type) == 4040:
             print('error not found , code = 404 !')
             sock = socket.socket(socket.AF_INET,  # Internet
                                  socket.SOCK_DGRAM)  # UDP
@@ -165,19 +165,19 @@ class Proxy :
 
         elif int(response_type) == 301 or int(response_type) == 302:
             print('moved and redirect  , code = 301 or 302 !')
-            for i in splitedData:
-                if 'Location:' in i:
-                    # print(splitedData[splitedData.index(i) + 1])
-                    new_location = splitedData[splitedData.index(i) + 1]
-                    new_location = new_location.split('//')
-                    new_location = new_location[1].split('\\')
-                    new_ip = new_location[0]
+            # for i in splitedData:
+            #     if 'Location:' in i:
+            #         # print(splitedData[splitedData.index(i) + 1])
+            #         new_location = splitedData[splitedData.index(i) + 1]
+            #         new_location = new_location.split('//')
+            #         new_location = new_location[1].split('\\')
+            #         new_ip = new_location[0]
 
             BUFFER_SIZE = 10000
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print((bytes(new_ip, 'utf-8')))
+            # print((bytes(new_ip, 'utf-8')))
             # print(TCP_PORT)
-            s.connect((bytes(new_ip, 'utf-8'), self.TCP_PORT))
+            # s.connect((bytes(new_ip, 'utf-8'), self.TCP_PORT))
             s.send(bytes(self.realdata, 'utf-8'))
             data = s.recv(BUFFER_SIZE)
             s.close()
@@ -187,7 +187,7 @@ class Proxy :
     def get_input(self):
 
         command = input('enter command : \n')
-        command = "proxy -s udp:192.168.1.55:5016 -d tcp"
+        command = "proxy -s tcp:192.168.1.33:5016 -d udp"
         command = command.split(' ')
 
         if len(command) == 5:
@@ -202,6 +202,7 @@ class Proxy :
                     return False
 
                 self.UDP_IP =bytes (command2[1], 'utf-8')
+                self.IP = bytes(command2[1], 'utf-8')
                 self.UDP_PORT = int(command2[2])
 
             else :
@@ -325,8 +326,8 @@ class Proxy :
 
 
             elif self.tcp_to_udp and correct_command :
-
-                TCP_IP = bytes(self.IP, 'utf-8')
+                # print(self.IP)
+                TCP_IP = self.IP
                 TCP_PORT = 5013
                 BUFFER_SIZE = 10000  # Normally 10000, but we want fast response
 
@@ -362,7 +363,7 @@ class Proxy :
                             while True:
                                 try:
                                     myAnswers = myResolver.query(target, dns_type)  # Lookup the 'A' record(s) for google.com
-                                    print(myAnswers.flags , dns.flags.AA )
+                                    # print(myAnswers.flags , dns.flags.AA )
                                     break
                                 except dns.exception.Timeout:
                                     print('time out')
@@ -388,5 +389,4 @@ class Proxy :
 if __name__ == "__main__":
 
     proxy = Proxy()
-    proxy.send_and_recieve_req()
-
+proxy.send_and_recieve_req()
