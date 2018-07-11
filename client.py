@@ -31,7 +31,7 @@ class Client:
         request = input('enter request : \n')
         host = input()
         #request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
-        request = "type=CNAME server=127.215.155.155 target=mail.google.com‬‬"
+        request = "type=CNAME server=127.215.155.155 target=soft98.ir‬‬"
         # host = "stackoverflow.com"
         get_req = request.split('/')
         dns_req = request.split(' ')

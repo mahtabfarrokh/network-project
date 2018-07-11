@@ -326,7 +326,7 @@ class Proxy :
                 inCache = 0
 
 
-            elif self.tcp_to_udp and correct_command :
+            elif self.tcp_to_udp and correct_command:
 
                 print(' waiting for client request (DNS mode) ... ')
 
@@ -379,8 +379,13 @@ class Proxy :
 
                             result = ''
                             for rdata in myAnswers:  # for each response
-                                result += str(rdata) + ' '
-                                print(rdata.target)  # print the data
+
+                                if dns_type == 'CNAME':
+                                    result += str(rdata.target) + ' '
+                                    print(rdata.target)  # print the data
+                                else:
+                                    result += str(rdata) + ' '
+                                    print(rdata)
 
                             # save data in cache
                             if len(self.DNSCache) < 10:
