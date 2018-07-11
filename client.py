@@ -17,7 +17,7 @@ class Client:
         self.dns_type = ''
         self.dns_server = ''
         self.dns_target = ''
-        self.IP = '192.168.1.55'
+        self.IP = '127.0.0.1'
         self.file = open("index.txt", "w")
 
         # IP = '192.168.1.55'
@@ -31,7 +31,7 @@ class Client:
         request = input('enter request : \n')
         host = input()
         #request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
-        request = "type=CNAME server=127.215.155.155 target=soft98.ir‬‬"
+        request = "type=CNAME server=127.215.155.155 target=www.soft98.ir"
         # host = "stackoverflow.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
@@ -40,7 +40,7 @@ class Client:
             self.address = host
             self.message = request
             return True
-        print(dns_req[0].split('=')[0], len(dns_req))
+        # print(dns_req[0].split('=')[0], len(dns_req))
         if len(dns_req) == 3 and dns_req[0].split('=')[0] == 'type':
             self.DNS_request = True
             print(dns_req[0].split('=')[1])
@@ -198,11 +198,12 @@ class Client:
 
                 dnstype = self.dns_type
                 target = self.dns_target
+                server = self.dns_server
 
                 TCP_IP = bytes(self.IP, 'utf-8')
                 TCP_PORT = 5011
                 BUFFER_SIZE = 10000
-                MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+', 'utf-8')
+                MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+' + server + '!@#$%^&*()_+' , 'utf-8')
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect((TCP_IP, TCP_PORT))

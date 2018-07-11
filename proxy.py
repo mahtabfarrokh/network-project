@@ -187,7 +187,7 @@ class Proxy :
     def get_input(self):
 
         command = input('enter command : \n')
-        command = "proxy -s tcp:192.168.1.55:5016 -d udp"
+        command = "proxy -s tcp:127.0.0.1:5016 -d udp"
         # command = "proxy -s udp:192.168.1.33:5016 -d tcp"
         command = command.split(' ')
 
@@ -331,6 +331,7 @@ class Proxy :
                 print(' waiting for client request (DNS mode) ... ')
 
                 # print(self.IP)
+                noanswer = False
                 TCP_IP = self.IP
                 TCP_PORT = 5011
                 BUFFER_SIZE = 10000  # Normally 10000, but we want fast response
@@ -343,7 +344,9 @@ class Proxy :
                 print('Connection address:', addr)
 
                 while 1:
-
+                    if  noanswer :
+                        noanswer = False
+                        break
                     data = conn.recv(BUFFER_SIZE)
                     if not data:
                         break
@@ -362,9 +365,17 @@ class Proxy :
                             if data in i:
                                 print('here', self.DNSCache)
                                 conn.send(bytes(i[1], 'utf-8'))
-                                inDNSCache = 1
+                                self.inDNSCache = 1
 
                         if self.inDNSCache == 0:   #if not in cache
+
+                            qm = dns.message.make_query(target, 'A')
+                            qa = dns.query.udp(qm, '204.74.108.1', timeout=4)
+                            print('inja :' , qa.flags , dns.flags.AA)
+                            print('Authoritative : ' , qa.flags & dns.flags.AA  )
+
+                            result = ''
+
                             while True:
                                 try:
                                     myAnswers = myResolver.query(target, dns_type)  # Lookup the 'A' record(s) for google.com
@@ -374,7 +385,11 @@ class Proxy :
                                     print('time out')
                                 except dns.resolver.NoAnswer:
                                     print('noanswer')
+                                    result = 'no answer'
+                                    conn.send(bytes(result, 'utf-8'))  # echo
+                                    conn.close()
                                     myAnswers = ''
+                                    noanswer = True
                                     break
 
                             result = ''
@@ -397,7 +412,9 @@ class Proxy :
                                 if self.dnsindex == 10:
                                     self.dnsindex = 0
 
-                            conn.send(bytes(result, 'utf-8'))  # echo
+                            if not noanswer :
+                                conn.send(bytes(result, 'utf-8'))  # echo
+                            # conn.close()
                             self.inDNSCache = 0
                 conn.close()
 
