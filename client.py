@@ -22,8 +22,7 @@ class Client :
         # proxy -s udp:172.23.157.80:5016 -d tcp
         # GET / HTTP/1.1
         # www.google.com
-    def get_input(self) :
-
+    def get_input(self):
         request = input('enter request : \n')
         host = input()
         request = "GET / HTTP/1.1"
@@ -43,7 +42,7 @@ class Client :
             return True
         return False
 
-    def checksum1(self,message):
+    def checksum1(self, message):
         c = 0
         print("staaaaaaaart")
         for x in message:
