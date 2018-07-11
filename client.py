@@ -17,7 +17,7 @@ class Client:
         self.dns_type = ''
         self.dns_server = ''
         self.dns_target = ''
-        self.IP = '192.168.1.33'
+        self.IP = '192.168.1.55'
         self.file = open("index.txt", "w")
 
         # IP = '192.168.1.55'
@@ -31,7 +31,7 @@ class Client:
         request = input('enter request : \n')
         host = input()
         #request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
-        request = "type=A server=127.215.155.155 target=www.aut.ac.ir‬‬"
+        request = "type=CNAME server=127.215.155.155 target=mail.google.com‬‬"
         # host = "stackoverflow.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
@@ -40,7 +40,7 @@ class Client:
             self.address = host
             self.message = request
             return True
-        print(dns_req[0].split('=')[0] , len(dns_req))
+        print(dns_req[0].split('=')[0], len(dns_req))
         if len(dns_req) == 3 and dns_req[0].split('=')[0] == 'type':
             self.DNS_request = True
             print(dns_req[0].split('=')[1])
@@ -200,7 +200,7 @@ class Client:
                 target = self.dns_target
 
                 TCP_IP = bytes(self.IP, 'utf-8')
-                TCP_PORT = 5013
+                TCP_PORT = 5011
                 BUFFER_SIZE = 10000
                 MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+', 'utf-8')
 

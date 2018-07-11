@@ -187,7 +187,7 @@ class Proxy :
     def get_input(self):
 
         command = input('enter command : \n')
-        command = "proxy -s tcp:192.168.1.33:5016 -d udp"
+        command = "proxy -s tcp:192.168.1.55:5016 -d udp"
         # command = "proxy -s udp:192.168.1.33:5016 -d tcp"
         command = command.split(' ')
 
@@ -332,7 +332,7 @@ class Proxy :
 
                 # print(self.IP)
                 TCP_IP = self.IP
-                TCP_PORT = 5013
+                TCP_PORT = 5011
                 BUFFER_SIZE = 10000  # Normally 10000, but we want fast response
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -356,8 +356,8 @@ class Proxy :
                         target = target.split('\\')[0]
                         print('target: ', target)
                         myResolver = dns.resolver.Resolver()  # create a new instance named 'myResolver'
-                        myResolver.timeout = 0.01
-
+                        myResolver.timeout = 1
+                        myResolver.lifetime = 1
                         for i in self.DNSCache:
                             if data in i:
                                 print('here', self.DNSCache)
@@ -372,10 +372,15 @@ class Proxy :
                                     break
                                 except dns.exception.Timeout:
                                     print('time out')
+                                except dns.resolver.NoAnswer:
+                                    print('noanswer')
+                                    myAnswers = ''
+                                    break
+
                             result = ''
                             for rdata in myAnswers:  # for each response
                                 result += str(rdata) + ' '
-                                print(rdata)  # print the data
+                                print(rdata.target)  # print the data
 
                             # save data in cache
                             if len(self.DNSCache) < 10:
