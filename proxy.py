@@ -28,17 +28,20 @@ class Proxy :
         self.inDNSCache = 0
         self.udp_to_tcp = False
         self.tcp_to_udp = False
-
+        self.file = open("index2.txt", "w")
 
 
     def checksum(self, message):
         c = 0
-        print(message)
+        # print(message)
         print("staaaaaaaart")
         for x in message:
-            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''):
-                print(x + " - ", end='', flush=True)
+            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''
+                    or x == '\\t' or x == '\t' or x == 't'):
+                # print(x + " - ", end='', flush=True)
                 c = c + ord(x)
+                self.file.write(x)
+                # c = c + x
         csum = bin(c)
         csum = csum.split('b')
         return csum[1]
@@ -48,7 +51,7 @@ class Proxy :
     def response_to_client(self,data):
 
         print("------------------>>>>>>>")
-        print(data)
+        # print(data)
         udp_port = 5017
 
         # newdata = str(data)
@@ -63,6 +66,7 @@ class Proxy :
         data = data.text
         iteration = 2
         if int(response_type) == 200:
+
             print('ok ^^ , code = 200 !')
             # sock.sendto(data, (UDP_IP, udp_port))
             # print("received data:", data)
@@ -71,20 +75,21 @@ class Proxy :
             segment_size = 5000
             # print("leeeeeeeeeeeeen:")
             # print(len(data))
-            print('len : ' , len(data))
+            print('len : ', len(data))
 
             if len(data) > segment_size:
 
                 iteration = int(len(data) / segment_size) + 2
-                print('number of iteration : ' , iteration)
+                print('number of iteration : ', iteration)
                 MF = 1
                 print("fragment happened")
             else:
                     MF = 0
 
             data = str(data)[:-1]
+            # file.write(data)
             data = data.replace('\'', '\\\'')
-            for i in range(1, 2):
+            for i in range(1, iteration):
                 print("iteration : ", i)
                 if i == iteration - 1:
                     MF = 0
@@ -115,7 +120,7 @@ class Proxy :
                     print('man injam!!')
                     counter += 1
                     # print("counter :", counter)
-                    UDP_PORT = 5008
+                    UDP_PORT = 5018
                     sock = socket.socket(socket.AF_INET,  # Internet
                                          socket.SOCK_DGRAM)  # UDP
                     print(self.UDP_IP)
@@ -138,12 +143,12 @@ class Proxy :
                         print('timeout')
                         print('retransmit: ')
                         break
-                        # UDP_PORT = 5008
-                        # sock = socket.socket(socket.AF_INET,  # Internet
-                        #                      socket.SOCK_DGRAM)  # UDP
-                        # sock.sendto(MESSAGE, (self.UDP_IP, UDP_PORT))
-                        # sock.close()
-
+                        UDP_PORT = 5018
+                        sock = socket.socket(socket.AF_INET,  # Internet
+                                             socket.SOCK_DGRAM)  # UDP
+                        sock.sendto(MESSAGE, (self.UDP_IP, UDP_PORT))
+                        sock.close()
+            self.file.close()
         elif int(response_type) == 404:
             print('error not found , code = 404 !')
             sock = socket.socket(socket.AF_INET,  # Internet
@@ -182,7 +187,7 @@ class Proxy :
     def get_input(self):
 
         command = input('enter command : \n')
-        command = "proxy -s udp:172.23.157.80:5016 -d tcp"
+        command = "proxy -s udp:192.168.1.55:5016 -d tcp"
         command = command.split(' ')
 
         if len(command) == 5:
@@ -253,7 +258,7 @@ class Proxy :
 
                             self.cacheSaveMsg = realdata1.split('\\')[0]
 
-                            UDP_PORT = 5008
+                            UDP_PORT = 5018
 
                             ack = bytes(str(self.NR), 'utf-8')
                             print("NR:", ack, self.NR, NS)

@@ -6,7 +6,7 @@ import requests
 # monireIP = '192.168.1.33'
 # mahtabIP = '192.168.1.55'
 
-class Client :
+class Client:
 
     def __init__(self):
 
@@ -14,10 +14,12 @@ class Client :
         self.DNS_request = False
         self.address = ''
         self.message = ''
-        self.dns_type =''
+        self.dns_type = ''
         self.dns_server = ''
         self.dns_target = ''
-        self.IP = '172.23.157.80'
+        self.IP = '192.168.1.55'
+        self.file = open("index.txt", "w")
+
         # IP = '192.168.1.55'
         # proxy -s udp:172.23.157.80:5016 -d tcp
         # GET / HTTP/1.1
@@ -26,7 +28,7 @@ class Client :
         request = input('enter request : \n')
         host = input()
         request = "GET / HTTP/1.1"
-        host = "python.org"
+        host = "stackoverflow.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
         if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
@@ -46,17 +48,21 @@ class Client :
         c = 0
         print("staaaaaaaart")
         for x in message:
-            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''):
-                print(x + " - ", end='', flush=True)
+            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''
+                    or x == '\\t' or x == '\t' or x == 't'):
+                # print(x + " - ", end='', flush=True)
                 c = c + ord(x)
+                self.file.write(x)
+                # c = c + x
         csum = bin(c)
         csum = csum.split('b')
 
         return csum[1]
-#1110110011011011
-    def send_and_recieve_req(self):
-        while True :
 
+
+    def send_and_recieve_req(self):
+
+        while True:
             correct_request = self.get_input()
 
             if self.get_request and correct_request:
@@ -70,7 +76,6 @@ class Client :
                 iteration = 2
                 data = self.message
                 realdata = ''
-
 
                 segment_size = 5000
 
@@ -104,7 +109,7 @@ class Client :
                     while True:
                         counter += 1
                         print("counter :", counter)
-                        UDP_PORT = 5008
+                        UDP_PORT = 5018
                         sock = socket.socket(socket.AF_INET,  # Internet
                                              socket.SOCK_DGRAM)  # UDP
                         sock.bind((UDP_IP, UDP_PORT))
@@ -158,8 +163,7 @@ class Client :
                         # for i in range(0, len(data)):
                         #     print(data[i])
                         #     print("********************")
-                        print(data[3][:-9])
-                        print(self.checksum1(MESSAGE))
+                        # TODO: :D
 
                         if NS == int(not bool(NR)) and (self.checksum1(MESSAGE) == data[3][:-9]):
                             print('wtffffffffff')
@@ -168,7 +172,7 @@ class Client :
                             else:
                                 realdata = realdata + str(data[2])
 
-                            UDP_PORT = 5008
+                            UDP_PORT = 5018
                             ack = bytes(str(NR), 'utf-8')
                             sock = socket.socket(socket.AF_INET,  # Internet
                                                  socket.SOCK_DGRAM)  # UDP
@@ -179,7 +183,7 @@ class Client :
                                 break
                 realdata += '\r\n\r\n'
                 print("real data : ", realdata)
-
+                self.file.close()
 
 
             elif self.DNS_request and correct_request :
