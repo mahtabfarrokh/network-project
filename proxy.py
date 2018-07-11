@@ -31,10 +31,14 @@ class Proxy :
 
 
 
-    def checksum(self,message):
+    def checksum(self, message):
         c = 0
+        print(message)
+        print("staaaaaaaart")
         for x in message:
-            c = c + ord(x)
+            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''):
+                print(x + " - ", end='', flush=True)
+                c = c + ord(x)
         csum = bin(c)
         csum = csum.split('b')
         return csum[1]
@@ -47,14 +51,16 @@ class Proxy :
         print(data)
         udp_port = 5017
 
-        newdata = str(data)
-        newdata = newdata.split('\'')
-        splitedData = newdata[1].split(' ')
-        response_type = splitedData[1]
+        # newdata = str(data)
+        # newdata = newdata.split('\'')
+        # splitedData = newdata[1].split(' ')
+        # response_type = splitedData[1]
+
+        response_type = data.status_code
         # print('here',response_type)
         NS = 0
         MF = 0  # More fragment
-
+        data = data.text
         iteration = 2
         if int(response_type) == 200:
             print('ok ^^ , code = 200 !')
@@ -62,18 +68,24 @@ class Proxy :
             # print("received data:", data)
             # sock.close()
 
-            segment_size = 200
+            segment_size = 5000
             # print("leeeeeeeeeeeeen:")
             # print(len(data))
+            print('len : ' , len(data))
+
             if len(data) > segment_size:
+
                 iteration = int(len(data) / segment_size) + 2
+                print('number of iteration : ' , iteration)
                 MF = 1
                 print("fragment happened")
             else:
                     MF = 0
 
-            data = str(data)[2:-1]
-            for i in range(1, iteration):
+            data = str(data)[:-1]
+            data = data.replace('\'', '\\\'')
+            for i in range(1, 2):
+                print("iteration : ", i)
                 if i == iteration - 1:
                     MF = 0
                 start = (i - 1) * segment_size
@@ -81,22 +93,24 @@ class Proxy :
                 if end > len(data):
                     end = len(data)
 
-                msg = str(NS) + '@' + str(MF) + '@' + data[start:end]
+                msg = str(NS) + '!@#$%^&*()_+' + str(MF) + '!@#$%^&*()_+' + data[start:end]
+                msg = msg.replace('\\n', '\n')
+                msg = msg.replace('\\r', '\r')
+                msg = msg.replace('\\\\', '\\')
                 csum = self.checksum(msg)
                 msg = msg.replace('\\n', '\n')
                 msg = msg.replace('\\r', '\r')
                 msg = msg.replace('\\\\', '\\')
-                # msg = msg + '\r\n\r\n'
-                newmsg = msg + '@' + str(csum) + '\r\n\r\n'
+
+                newmsg = msg + '!@#$%^&*()_+' + str(csum) + '\r\n\r\n'
                 MESSAGE = bytes(newmsg, 'utf-8')
 
                 sock = socket.socket(socket.AF_INET,  # Internet
                                      socket.SOCK_DGRAM)  # UDP
-
+                # print('sent message :' ,MESSAGE)
                 sock.sendto(MESSAGE, (self.UDP_IP, udp_port))
                 sock.close()
                 counter = 0
-
                 while True:
                     print('man injam!!')
                     counter += 1
@@ -108,8 +122,9 @@ class Proxy :
                     sock.bind((self.UDP_IP, UDP_PORT))
                     sock.settimeout(1)
                     try:
-                        data2, addr = sock.recvfrom(1024)
+                        data2, addr = sock.recvfrom(10000)
                         NR = str(data2)[2]
+                        print('ack : ', NR, NS)
                         sock.close()
                         print(int(NR) , int(not bool(NS)) )
                         if int(NR) == int(not bool(NS)):
@@ -121,12 +136,13 @@ class Proxy :
                     except socket.timeout:
 
                         print('timeout')
-                        print('retransmit: ', MESSAGE)
-                        UDP_PORT = 5008
-                        sock = socket.socket(socket.AF_INET,  # Internet
-                                             socket.SOCK_DGRAM)  # UDP
-                        sock.sendto(MESSAGE, (self.UDP_IP, UDP_PORT))
-                        sock.close()
+                        print('retransmit: ')
+                        break
+                        # UDP_PORT = 5008
+                        # sock = socket.socket(socket.AF_INET,  # Internet
+                        #                      socket.SOCK_DGRAM)  # UDP
+                        # sock.sendto(MESSAGE, (self.UDP_IP, UDP_PORT))
+                        # sock.close()
 
         elif int(response_type) == 404:
             print('error not found , code = 404 !')
@@ -152,7 +168,7 @@ class Proxy :
                     new_location = new_location[1].split('\\')
                     new_ip = new_location[0]
 
-            BUFFER_SIZE = 1024
+            BUFFER_SIZE = 10000
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print((bytes(new_ip, 'utf-8')))
             # print(TCP_PORT)
@@ -163,9 +179,10 @@ class Proxy :
 
             self.response_to_client(data)
 
-    def get_input(self) :
+    def get_input(self):
 
         command = input('enter command : \n')
+        command = "proxy -s udp:172.23.157.80:5016 -d tcp"
         command = command.split(' ')
 
         if len(command) == 5:
@@ -200,21 +217,23 @@ class Proxy :
 
                     print(' waiting for client request ... ')
                     #UDP_PORT = 5016
-                    BUFFER_SIZE = 1024
+                    BUFFER_SIZE = 10000
                     sock = socket.socket(socket.AF_INET,  # Internet
                                          socket.SOCK_DGRAM)  # UDP
                     sock.bind((self.UDP_IP, self.UDP_PORT))
-                    data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+                    data, addr = sock.recvfrom(10000)  # buffer size is 10000 bytes
                     print('first data :', data)
                     sock.close()
 
                     if data:
-                        data = str(data).split("@")
-                        TCP_IP = bytes(data[0][2:], 'utf-8')
+
+                        data = str(data).split("!@#$%^&*()_+")
+                        # TCP_IP = bytes(data[0][2:], 'utf-8')
+                        TCP_IP = data[0][2:]
                         TCP_PORT = int(data[1])
                         NS = int(data[2])
                         MF = int(data[3])
-                        MESSAGE = data[0][2:] + '@' + data[1] + '@' + data[2] + '@' + data[3] + '@' + data[4][:-8]
+                        MESSAGE = data[0][2:] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2] + '!@#$%^&*()_+' + data[3] + '!@#$%^&*()_+' + data[4][:-8]
                         # cmsg = realdata1.split('\\')
                         # print(cmsg)
                         # cacheSaveMsg = realdata1.split('\\')[0]
@@ -229,8 +248,8 @@ class Proxy :
                             realdata1= ''
                             #print("heeeeeeeeeeeeereeeeeeeeeeeeee")
                             self.realdata = self.realdata + str(data[4][:-8])
-                            realdata1 = realdata1 + str(data[0][2:]) + '@' + str(data[1]) + '@' + str(data[2]) + '@' + str(
-                                data[3]) + '@' + str(data[4])
+                            realdata1 = realdata1 + str(data[0][2:]) + '!@#$%^&*()_+' + str(data[1]) + '!@#$%^&*()_+' + str(data[2]) + '!@#$%^&*()_+' + str(
+                                data[3]) + '!@#$%^&*()_+' + str(data[4])
 
                             self.cacheSaveMsg = realdata1.split('\\')[0]
 
@@ -263,17 +282,23 @@ class Proxy :
                 if self.inCache == 0:  # if not in cache
 
                     print('it is not in cache  :( ', self.httpCache)
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    #----------------------------------------------------------------- socket
+                    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    # print(TCP_IP)
+                    # s.connect((TCP_IP, TCP_PORT))
+                    #
+                    # # we just send " get request " :)
+                    # s.send(bytes('GET / HTTP/1.0\r\n\r\n', 'utf-8'))
+                    #
+                    # data = s.recv(BUFFER_SIZE)
+                    # s.close()
+
+                    #------------------------------------------------------------------ requests
                     print(TCP_IP)
-                    s.connect((TCP_IP, TCP_PORT))
+                    TCP_IP = 'http://' + TCP_IP
+                    r = requests.get(TCP_IP)
+                    print(r.text)
 
-                    # we just send " get request " :)
-                    s.send(bytes('GET / HTTP/1.0\r\n\r\n', 'utf-8'))
-
-                    data = s.recv(BUFFER_SIZE)
-                    s.close()
-
-                    # print('old cache',httpCache)
 
                     # save data in cache
                     if len(self.httpCache) < 10:
@@ -288,7 +313,8 @@ class Proxy :
                     # print('index',index)
                     # print('new cache',httpCache)
 
-                    self.response_to_client(data)
+                    self.response_to_client(r)
+                    # self.response_to_client(data)
 
                 inCache = 0
 
@@ -297,7 +323,7 @@ class Proxy :
 
                 TCP_IP = bytes(self.IP, 'utf-8')
                 TCP_PORT = 5013
-                BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
+                BUFFER_SIZE = 10000  # Normally 10000, but we want fast response
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.bind((TCP_IP, TCP_PORT))
@@ -313,7 +339,7 @@ class Proxy :
                         break
                     else:
                         print("received data:", data)
-                        data1 = str(data).split('@')
+                        data1 = str(data).split('!@#$%^&*()_+')
                         dns_type = str(data1[0][2:])
                         target = str(data1[1])
                         print('type: ', dns_type)

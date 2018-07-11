@@ -17,23 +17,25 @@ class Client :
         self.dns_type =''
         self.dns_server = ''
         self.dns_target = ''
-        self.IP = '192.168.1.33'
+        self.IP = '172.23.157.80'
         # IP = '192.168.1.55'
-
-
+        # proxy -s udp:172.23.157.80:5016 -d tcp
+        # GET / HTTP/1.1
+        # www.google.com
     def get_input(self) :
 
         request = input('enter request : \n')
         host = input()
-
+        request = "GET / HTTP/1.1"
+        host = "python.org"
         get_req = request.split('/')
-        if get_req[0] == 'GET ' :
+        dns_req = request.split(' ')
+        if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
             self.get_request = True
             self.address = host
             self.message = request
             return True
-        else :
-            dns_req = request.split(' ')
+        elif len(dns_req) == 3 and dns_req[0].split('=')[0] == 'type':
             self.DNS_request = True
             self.dns_type = dns_req[0].split('=')[1]
             self.dns_server = dns_req[1].split('=')[1]
@@ -43,13 +45,16 @@ class Client :
 
     def checksum1(self,message):
         c = 0
+        print("staaaaaaaart")
         for x in message:
-            c = c + ord(x)
+            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''):
+                print(x + " - ", end='', flush=True)
+                c = c + ord(x)
         csum = bin(c)
         csum = csum.split('b')
 
         return csum[1]
-
+#1110110011011011
     def send_and_recieve_req(self):
         while True :
 
@@ -65,14 +70,10 @@ class Client :
                 MF = 0  # More fragment
                 iteration = 2
                 data = self.message
-                newdata = ''
                 realdata = ''
-                realdata1 = ''
 
 
-                segment_size = 5
-                # print("leeeeeeeeeeeeen:")
-                # print(len(data))
+                segment_size = 5000
 
                 if len(data) > segment_size:
                     iteration = int(len(data) / segment_size) + 2
@@ -88,12 +89,12 @@ class Client :
                     end = i * segment_size
                     if end > len(data):
                         end = len(data)
-                    msg = self.address + '@' + port + '@' + str(NS) + '@' + str(MF) + '@' + data[start:end]
+                    msg = self.address + '!@#$%^&*()_+' + port + '!@#$%^&*()_+' + str(NS) + '!@#$%^&*()_+' + str(MF) + '!@#$%^&*()_+' + data[start:end]
                     cmsg = msg.split('\\')
                     # checksum = checksum1(cmsg[0])
                     checksum = self.checksum1(msg)
                     msg = msg + '\r\n\r\n'
-                    newmsg = msg + '@' + str(checksum)
+                    newmsg = msg + '!@#$%^&*()_+' + str(checksum)
                     MESSAGE = bytes(newmsg, 'utf-8')
 
                     sock = socket.socket(socket.AF_INET,  # Internet
@@ -110,7 +111,7 @@ class Client :
                         sock.bind((UDP_IP, UDP_PORT))
                         sock.settimeout(1)
                         try:
-                            data2, addr = sock.recvfrom(1024)
+                            data2, addr = sock.recvfrom(10000)
                             NR = str(data2)[2]
                             print('ack : ', NR, NS)
                             sock.close()
@@ -134,14 +135,15 @@ class Client :
                     sock = socket.socket(socket.AF_INET,  # Internet
                                          socket.SOCK_DGRAM)  # UDP
                     sock.bind((UDP_IP, UDP_PORT))
-                    data, addr = sock.recvfrom(1024)
+                    data, addr = sock.recvfrom(10000)
                     sock.close()
 
                     if data:
-                        data = str(data).split("@")
+
+                        data = str(data).split("!@#$%^&*()_+")
                         NS = int(data[0][2:])
                         MF = int(data[1])
-                        MESSAGE = data[0][2:] + '@' + data[1] + '@' + data[2]
+                        MESSAGE = data[0][2:] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2]
                         MESSAGE = MESSAGE.replace('\\\\', '\\')
                         MESSAGE2 = MESSAGE.split('\\\\')
                         MESSAGE = ''
@@ -152,11 +154,21 @@ class Client :
                                 c = 1
                             else:
                                 MESSAGE += '\\' + i
+                        print('here: ')
+                        # print(len(data))
+                        # for i in range(0, len(data)):
+                        #     print(data[i])
+                        #     print("********************")
+                        print(data[3][:-9])
+                        print(self.checksum1(MESSAGE))
+
                         if NS == int(not bool(NR)) and (self.checksum1(MESSAGE) == data[3][:-9]):
+                            print('wtffffffffff')
                             if MF == 1:
                                 realdata = realdata + str(data[2][:-8])
                             else:
                                 realdata = realdata + str(data[2])
+
                             UDP_PORT = 5008
                             ack = bytes(str(NR), 'utf-8')
                             sock = socket.socket(socket.AF_INET,  # Internet
@@ -178,8 +190,8 @@ class Client :
 
                 TCP_IP = bytes(self.IP, 'utf-8')
                 TCP_PORT = 5013
-                BUFFER_SIZE = 1024
-                MESSAGE = bytes(dnstype + '@' + target + '@', 'utf-8')
+                BUFFER_SIZE = 10000
+                MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+', 'utf-8')
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect((TCP_IP, TCP_PORT))
