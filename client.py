@@ -30,7 +30,8 @@ class Client:
 
         request = input('enter request : \n')
         host = input()
-        request = "type=A server=127.215.155.155 target=www.google.com‬‬"
+        #request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
+        request = "type=A server=127.215.155.155 target=www.aut.ac.ir‬‬"
         # host = "stackoverflow.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
@@ -213,4 +214,4 @@ class Client:
 if __name__ == "__main__":
 
     client = Client()
-client.send_and_recieve_req()
+    client.send_and_recieve_req()

@@ -188,6 +188,7 @@ class Proxy :
 
         command = input('enter command : \n')
         command = "proxy -s tcp:192.168.1.33:5016 -d udp"
+        # command = "proxy -s udp:192.168.1.33:5016 -d tcp"
         command = command.split(' ')
 
         if len(command) == 5:
@@ -221,7 +222,7 @@ class Proxy :
 
                 while True:
 
-                    print(' waiting for client request ... ')
+                    print(' waiting for client request (http mode)... ')
                     #UDP_PORT = 5016
                     BUFFER_SIZE = 10000
                     sock = socket.socket(socket.AF_INET,  # Internet
@@ -326,6 +327,9 @@ class Proxy :
 
 
             elif self.tcp_to_udp and correct_command :
+
+                print(' waiting for client request (DNS mode) ... ')
+
                 # print(self.IP)
                 TCP_IP = self.IP
                 TCP_PORT = 5013
@@ -349,6 +353,7 @@ class Proxy :
                         dns_type = str(data1[0][2:])
                         target = str(data1[1])
                         print('type: ', dns_type)
+                        target = target.split('\\')[0]
                         print('target: ', target)
                         myResolver = dns.resolver.Resolver()  # create a new instance named 'myResolver'
                         myResolver.timeout = 0.01
