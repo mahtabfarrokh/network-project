@@ -188,8 +188,8 @@ class Proxy :
     def get_input(self):
 
         command = input('enter command : \n')
-        # command = "proxy -s tcp:127.0.0.1:5016 -d udp"
-        command = "proxy -s udp:127.0.0.1:5016 -d tcp"
+        command = "proxy -s tcp:127.0.0.1:5016 -d udp"
+        # command = "proxy -s udp:127.0.0.1:5016 -d tcp"
         command = command.split(' ')
 
         if len(command) == 5:
@@ -334,7 +334,7 @@ class Proxy :
                 # print(self.IP)
                 noanswer = False
                 TCP_IP = self.IP
-                TCP_PORT = 5012
+                TCP_PORT = 5011
                 BUFFER_SIZE = 10000  # Normally 10000, but we want fast response
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -371,9 +371,17 @@ class Proxy :
                         if self.inDNSCache == 0:   #if not in cache
 
                             qm = dns.message.make_query(target, 'A')
-                            qa = dns.query.udp(qm, '204.74.108.1', timeout=4)
-                            print('inja :' , qa.flags , dns.flags.AA)
-                            print('Authoritative : ' , qa.flags & dns.flags.AA  )
+                            try:
+                                qa = dns.query.udp(qm, '204.74.108.1', timeout=4)
+                                print('inja :' , qa.flags , dns.flags.AA)
+                                print('Authoritative : ' , qa.flags & dns.flags.AA  )
+                                if qa.flags & dns.flags.AA == 1024 :
+                                    AAflag = 1
+                                else :
+                                    AAflag = 0
+
+                            except dns.exception.Timeout:
+                                print('time out')
 
                             result = ''
                             while True:
@@ -395,12 +403,12 @@ class Proxy :
                             result = ''
                             for rdata in myAnswers:  # for each response
                                 if dns_type == 'CNAME':
-                                    result += str(rdata.target) + ' '
+                                    result += str(rdata.target) + '@' + str(AAflag)
                                     print(rdata.target)  # print the data
                                 else:
-                                    result += str(rdata) + ' '
+                                    result += str(rdata) + '@' + str(AAflag)
                                     print(rdata)
-                            print(myAnswers.authority)
+                            # print(myAnswers.authority)
                             # save data in cache
                             if len(self.DNSCache) < 10:
                                 self.DNSCache.append([data, result])

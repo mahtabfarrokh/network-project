@@ -30,10 +30,9 @@ class Client:
 
         request = input('enter request : \n')
         host = input()
-        # request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
-        # request = "type=CNAME server=127.215.155.155 target=www.soft98.ir"
-        request = "GET / HTTP/1.1"
-        host = "translate.google.com"
+        request = "type=CNAME server=127.215.155.155 target=www.soft98.ir"
+        # request = "GET / HTTP/1.1"
+        # host = "translate.google.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
         if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
@@ -210,7 +209,9 @@ class Client:
                 s.send(MESSAGE)
                 data = s.recv(BUFFER_SIZE)
                 s.close()
-                print('received data:', data)
+                data = str(data).split('@')
+                print('received data: ', data[0])
+                print('authoritative flag : ', data[1])
 
             self.file.close()
             self.file2.close()
