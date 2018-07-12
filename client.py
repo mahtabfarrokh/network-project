@@ -18,7 +18,7 @@ class Client:
         self.dns_server = ''
         self.dns_target = ''
         self.IP = '127.0.0.1'
-        self.file = open("index.txt", "w")
+        self.ignoreList = ['\\', '\\n', '\n', 'n', '\'', '\\t', '\t', 't', 'xa0', 'xc2']
 
         # IP = '192.168.1.55'
         # proxy -s udp:172.23.157.80:5016 -d tcp
@@ -30,9 +30,10 @@ class Client:
 
         request = input('enter request : \n')
         host = input()
-        #request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
-        request = "type=CNAME server=127.215.155.155 target=www.soft98.ir"
-        # host = "stackoverflow.com"
+        # request = "proxy -s udp:127.0.0.1:5016 -d tcp‬‬"
+        # request = "type=CNAME server=127.215.155.155 target=www.soft98.ir"
+        request = "GET / HTTP/1.1"
+        host = "translate.google.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
         if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
@@ -55,9 +56,9 @@ class Client:
     def checksum1(self, message):
         c = 0
         print("staaaaaaaart")
+        self.file.write('new\n')
         for x in message:
-            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''
-                    or x == '\\t' or x == '\t' or x == 't'):
+            if x not in self.ignoreList:
                 # print(x + " - ", end='', flush=True)
                 c = c + ord(x)
                 self.file.write(x)
@@ -72,12 +73,11 @@ class Client:
 
         while True:
             correct_request = self.get_input()
-
+            self.file = open("index.txt", "w")
+            self.file2 = open("index.html", "w")
             if self.get_request and correct_request:
 
                 UDP_IP = bytes(self.IP, 'utf-8')
-                timeout = 50
-                address = self.address
                 port = str(80)
                 NS = 0
                 MF = 0  # More fragment
@@ -103,7 +103,6 @@ class Client:
                         end = len(data)
                     msg = self.address + '!@#$%^&*()_+' + port + '!@#$%^&*()_+' + str(NS) + '!@#$%^&*()_+' + str(MF) + '!@#$%^&*()_+' + data[start:end]
                     cmsg = msg.split('\\')
-                    # checksum = checksum1(cmsg[0])
                     checksum = self.checksum1(msg)
                     msg = msg + '\r\n\r\n'
                     newmsg = msg + '!@#$%^&*()_+' + str(checksum)
@@ -156,7 +155,8 @@ class Client:
                         NS = int(data[0][2:])
                         MF = int(data[1])
                         MESSAGE = data[0][2:] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2]
-                        MESSAGE = MESSAGE.replace('\\\\', '\\')
+                        # MESSAGE = MESSAGE.replace('\\\\', '\\')
+
                         MESSAGE2 = MESSAGE.split('\\\\')
                         MESSAGE = ''
                         c = 0
@@ -166,19 +166,19 @@ class Client:
                                 c = 1
                             else:
                                 MESSAGE += '\\' + i
-                        print('here: ')
-                        # print(len(data))
-                        # for i in range(0, len(data)):
-                        #     print(data[i])
-                        #     print("********************")
-                        # TODO: :D
 
+                        MESSAGE = MESSAGE.replace('\\xa0', ' ')
+                        MESSAGE = MESSAGE.replace('\\xc2', '')
+                        MESSAGE = ''.join([i if ord(i) < 128 else ' ' for i in MESSAGE])
                         if NS == int(not bool(NR)) and (self.checksum1(MESSAGE) == data[3][:-9]):
                             print('wtffffffffff')
                             if MF == 1:
                                 realdata = realdata + str(data[2][:-8])
+                                self.file2.write(str(data[2][:-8]))
                             else:
                                 realdata = realdata + str(data[2])
+                                self.file2.write(str(data[2]))
+                                self.file2.write('\r\n\r\n')
 
                             UDP_PORT = 5018
                             ack = bytes(str(NR), 'utf-8')
@@ -191,10 +191,10 @@ class Client:
                                 break
                 realdata += '\r\n\r\n'
                 print("real data : ", realdata)
-                self.file.close()
 
 
-            elif self.DNS_request and correct_request :
+
+            elif self.DNS_request and correct_request:
 
                 dnstype = self.dns_type
                 target = self.dns_target
@@ -203,7 +203,7 @@ class Client:
                 TCP_IP = bytes(self.IP, 'utf-8')
                 TCP_PORT = 5011
                 BUFFER_SIZE = 10000
-                MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+' + server + '!@#$%^&*()_+' , 'utf-8')
+                MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+' + server + '!@#$%^&*()_+', 'utf-8')
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect((TCP_IP, TCP_PORT))
@@ -211,6 +211,10 @@ class Client:
                 data = s.recv(BUFFER_SIZE)
                 s.close()
                 print('received data:', data)
+
+            self.file.close()
+            self.file2.close()
+
 
 if __name__ == "__main__":
 

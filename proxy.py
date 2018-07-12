@@ -29,15 +29,15 @@ class Proxy :
         self.udp_to_tcp = False
         self.tcp_to_udp = False
         self.file = open("index2.txt", "w")
-
+        self.ignoreList = ['\\', '\\n', '\n', 'n', '\'', '\\t', '\t', 't', 'xa0', 'xc2']
 
     def checksum(self, message):
         c = 0
         # print(message)
         print("staaaaaaaart")
+        self.file.write('new\n')
         for x in message:
-            if not (x == '\\' or x == '\\n' or x == '\n' or x == 'n' or x == '\''
-                    or x == '\\t' or x == '\t' or x == 't'):
+            if x not in self.ignoreList:
                 # print(x + " - ", end='', flush=True)
                 c = c + ord(x)
                 self.file.write(x)
@@ -88,7 +88,7 @@ class Proxy :
 
             data = str(data)[:-1]
             # file.write(data)
-            data = data.replace('\'', '\\\'')
+            # data = data.replace('\'', '\\\'')
             for i in range(1, iteration):
                 print("iteration : ", i)
                 if i == iteration - 1:
@@ -99,13 +99,13 @@ class Proxy :
                     end = len(data)
 
                 msg = str(NS) + '!@#$%^&*()_+' + str(MF) + '!@#$%^&*()_+' + data[start:end]
-                msg = msg.replace('\\n', '\n')
-                msg = msg.replace('\\r', '\r')
-                msg = msg.replace('\\\\', '\\')
+                msg = msg.replace('\\xa0', ' ')
+                msg = msg.replace('\\xc2', '')
+                msg = ''.join([i if ord(i) < 128 else ' ' for i in msg])
                 csum = self.checksum(msg)
-                msg = msg.replace('\\n', '\n')
-                msg = msg.replace('\\r', '\r')
-                msg = msg.replace('\\\\', '\\')
+                # msg = msg.replace('\\n', '\n')
+                # msg = msg.replace('\\r', '\r')
+                # msg = msg.replace('\\\\', '\\')
 
                 newmsg = msg + '!@#$%^&*()_+' + str(csum) + '\r\n\r\n'
                 MESSAGE = bytes(newmsg, 'utf-8')
@@ -131,7 +131,7 @@ class Proxy :
                         NR = str(data2)[2]
                         print('ack : ', NR, NS)
                         sock.close()
-                        print(int(NR) , int(not bool(NS)) )
+                        print(int(NR) , int(not bool(NS)))
                         if int(NR) == int(not bool(NS)):
                             NS = int(NR)
                             print("ssssaaaallllaaaavvvvaaaaatttt")
@@ -148,6 +148,7 @@ class Proxy :
                                              socket.SOCK_DGRAM)  # UDP
                         sock.sendto(MESSAGE, (self.UDP_IP, UDP_PORT))
                         sock.close()
+
             self.file.close()
         elif int(response_type) == 4040:
             print('error not found , code = 404 !')
@@ -187,8 +188,8 @@ class Proxy :
     def get_input(self):
 
         command = input('enter command : \n')
-        command = "proxy -s tcp:127.0.0.1:5016 -d udp"
-        # command = "proxy -s udp:192.168.1.33:5016 -d tcp"
+        # command = "proxy -s tcp:127.0.0.1:5016 -d udp"
+        command = "proxy -s udp:127.0.0.1:5016 -d tcp"
         command = command.split(' ')
 
         if len(command) == 5:
@@ -333,7 +334,7 @@ class Proxy :
                 # print(self.IP)
                 noanswer = False
                 TCP_IP = self.IP
-                TCP_PORT = 5011
+                TCP_PORT = 5012
                 BUFFER_SIZE = 10000  # Normally 10000, but we want fast response
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -375,7 +376,6 @@ class Proxy :
                             print('Authoritative : ' , qa.flags & dns.flags.AA  )
 
                             result = ''
-
                             while True:
                                 try:
                                     myAnswers = myResolver.query(target, dns_type)  # Lookup the 'A' record(s) for google.com
@@ -394,14 +394,13 @@ class Proxy :
 
                             result = ''
                             for rdata in myAnswers:  # for each response
-
                                 if dns_type == 'CNAME':
                                     result += str(rdata.target) + ' '
                                     print(rdata.target)  # print the data
                                 else:
                                     result += str(rdata) + ' '
                                     print(rdata)
-
+                            print(myAnswers.authority)
                             # save data in cache
                             if len(self.DNSCache) < 10:
                                 self.DNSCache.append([data, result])
@@ -419,6 +418,5 @@ class Proxy :
                 conn.close()
 
 if __name__ == "__main__":
-
     proxy = Proxy()
-proxy.send_and_recieve_req()
+    proxy.send_and_recieve_req()
