@@ -18,6 +18,7 @@ class Client:
         self.dns_server = ''
         self.dns_target = ''
         self.IP = '127.0.0.1'
+        self.turn = 0
         self.ignoreList = ['\\', '\\n', '\n', 'n', '\'', '\\t', '\t', 't', 'xa0', 'xc2']
 
         # IP = '192.168.1.55'
@@ -25,14 +26,14 @@ class Client:
         # GET / HTTP/1.1
         # www.google.com
 
-
+        # 127.215.155.155
     def get_input(self):
-
+        # self.turn += 1
         request = input('enter request : \n')
         host = input()
-        request = "type=CNAME server=127.215.155.155 target=www.soft98.ir"
-        # request = "GET / HTTP/1.1"
-        # host = "translate.google.com"
+        # request = "type=CNAME server=8.8.4.4 target=aut.ac.ir"
+        request = "GET / HTTP/1.1"
+        host = "translate.google.com"
         get_req = request.split('/')
         dns_req = request.split(' ')
         if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
@@ -94,6 +95,7 @@ class Client:
                     MF = 0
                 for i in range(1, iteration):
                     UDP_PORT = 5016
+                    UDP_PORT = 5001 + self.turn
                     if i == iteration - 1:
                         MF = 0
                     start = (i - 1) * segment_size
@@ -116,8 +118,11 @@ class Client:
                         counter += 1
                         print("counter :", counter)
                         UDP_PORT = 5018
+                        UDP_PORT = 5010 + self.turn
+                        print("port : ", UDP_PORT)
                         sock = socket.socket(socket.AF_INET,  # Internet
                                              socket.SOCK_DGRAM)  # UDP
+
                         sock.bind((UDP_IP, UDP_PORT))
                         sock.settimeout(1)
                         try:
@@ -134,7 +139,9 @@ class Client:
                         except socket.timeout:
                             print('timeout')
                             print('retransmit: ', MESSAGE)
+                            sock.close()
                             UDP_PORT = 5016
+                            UDP_PORT = 5001 + self.turn
                             sock = socket.socket(socket.AF_INET,  # Internet
                                                  socket.SOCK_DGRAM)  # UDP
                             sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
@@ -142,6 +149,7 @@ class Client:
 
                 while True :
                     UDP_PORT = 5017
+                    UDP_PORT = 5020 + self.turn
                     sock = socket.socket(socket.AF_INET,  # Internet
                                          socket.SOCK_DGRAM)  # UDP
                     sock.bind((UDP_IP, UDP_PORT))
@@ -180,9 +188,11 @@ class Client:
                                 self.file2.write('\r\n\r\n')
 
                             UDP_PORT = 5018
+                            UDP_PORT = 5030 + self.turn
                             ack = bytes(str(NR), 'utf-8')
                             sock = socket.socket(socket.AF_INET,  # Internet
                                                  socket.SOCK_DGRAM)  # UDP
+
                             sock.sendto(ack, (UDP_IP, UDP_PORT))
                             sock.close()
                             NR = NS
@@ -198,9 +208,9 @@ class Client:
                 dnstype = self.dns_type
                 target = self.dns_target
                 server = self.dns_server
-
+                print("hre : " + server)
                 TCP_IP = bytes(self.IP, 'utf-8')
-                TCP_PORT = 5011
+                TCP_PORT = 5016
                 BUFFER_SIZE = 10000
                 MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+' + server + '!@#$%^&*()_+', 'utf-8')
 
@@ -211,7 +221,8 @@ class Client:
                 s.close()
                 data = str(data).split('@')
                 print('received data: ', data[0])
-                print('authoritative flag : ', data[1])
+                if len(data)==2:
+                    print('authoritative flag : ', data[1])
 
             self.file.close()
             self.file2.close()
