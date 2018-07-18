@@ -89,7 +89,7 @@ class Proxy :
                 # print("fragment happened")
             else:
                     MF = 0
-            data = str(data)[:-1]
+            data = str(data)
             # file.write(data)
             # data = data.replace('\'', '\\\'')
             for i in range(1, iteration):
@@ -104,14 +104,14 @@ class Proxy :
                 msg = str(NS) + '!@#$%^&*()_+' + str(MF) + '!@#$%^&*()_+' + data[start:end]
                 msg = msg.replace('\\xa0', ' ')
                 msg = msg.replace('\\xc2', '')
-                msg = ''.join([i if ord(i) < 128 else ' ' for i in msg])
+                # msg = ''.join([i if ord(i) < 128 else ' ' for i in msg])
                 csum = self.checksum(msg)
                 # msg = msg.replace('\\n', '\n')
                 # msg = msg.replace('\\r', '\r')
                 # msg = msg.replace('\\\\', '\\')
 
                 newmsg = msg + '!@#$%^&*()_+' + str(csum) + '\r\n\r\n'
-                MESSAGE = bytes(newmsg, 'utf-8')
+                MESSAGE = newmsg.encode('utf-8')
 
                 sock = socket.socket(socket.AF_INET,  # Internet
                                      socket.SOCK_DGRAM)  # UDP
@@ -134,7 +134,7 @@ class Proxy :
                     sock.settimeout(1)
                     try:
                         data2, addr = sock.recvfrom(10000)
-                        NR = str(data2)[2]
+                        NR = data2.decode('utf-8')
                         print('ack : ', NR, NS)
                         sock.close()
                         print(int(NR) , int(not bool(NS)))
@@ -163,13 +163,13 @@ class Proxy :
             print('error not found , code = 404 !')
 
             msg = str(NS) + '!@#$%^&*()_+' + str(MF) + '!@#$%^&*()_+' + 'error not found !'
-            msg = msg.replace('\\xa0', ' ')
-            msg = msg.replace('\\xc2', '')
-            msg = ''.join([i if ord(i) < 128 else ' ' for i in msg])
+            # msg = msg.replace('\\xa0', ' ')
+            # msg = msg.replace('\\xc2', '')
+            # msg = ''.join([i if ord(i) < 128 else ' ' for i in msg])
             csum = self.checksum(msg)
             newmsg = msg + '!@#$%^&*()_+' + str(csum) + '\r\n\r\n'
-            MESSAGE = bytes(newmsg, 'utf-8')
-
+            # MESSAGE = bytes(newmsg, 'utf-8')
+            MESSAGE = newmsg.encode('utf-8')
             sock = socket.socket(socket.AF_INET,  # Internet
                                  socket.SOCK_DGRAM)  # UDP
 
@@ -193,7 +193,7 @@ class Proxy :
                 sock.settimeout(1)
                 try:
                     data2, addr = sock.recvfrom(10000)
-                    NR = str(data2)[2]
+                    NR = data2.decode('utf-8')[2]
                     print('ack : ', NR, NS)
                     sock.shutdown(1)
                     sock.close()
@@ -221,7 +221,7 @@ class Proxy :
             print('bad req , code = 400 !')
             sock = socket.socket(socket.AF_INET,  # Internet
                                  socket.SOCK_DGRAM)  # UDP
-            sock.sendto(bytes('bad request !', 'utf_8'), (self.UDP_IP, udp_port))
+            sock.sendto('bad request !'.encode('utf-8'), (self.UDP_IP, udp_port))
             sock.close()
 
         elif int(response_type) == 301 or int(response_type) == 302:
@@ -283,13 +283,13 @@ class Proxy :
                     sock.close()
 
                     if data:
-                        data = str(data).split("!@#$%^&*()_+")
+                        data = data.decode('utf-8').split("!@#$%^&*()_+")
                         # TCP_IP = bytes(data[0][2:], 'utf-8')
-                        TCP_IP = data[0][2:]
+                        TCP_IP = data[0]
                         TCP_PORT = int(data[1])
                         NS = int(data[2])
                         MF = int(data[3])
-                        MESSAGE = data[0][2:] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2] + '!@#$%^&*()_+' + data[3] + '!@#$%^&*()_+' + data[4][:-8]
+                        MESSAGE = data[0] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2] + '!@#$%^&*()_+' + data[3] + '!@#$%^&*()_+' + data[4][:-4]
                         # cmsg = realdata1.split('\\')
                         # print(cmsg)
                         # cacheSaveMsg = realdata1.split('\\')[0]
@@ -299,9 +299,9 @@ class Proxy :
                         print("tcpPORT", TCP_PORT)
                         print("N Next ", self.NR)
                         print(MESSAGE)
-                        print('checksum', data[5][:-1], self.checksum(MESSAGE))
+                        print('checksum', data[5], self.checksum(MESSAGE))
                         print(NS == int(not bool(self.NR)))
-                        if NS == int(not bool(self.NR)) and (self.checksum(MESSAGE) == data[5][:-1]):
+                        if NS == int(not bool(self.NR)) and (self.checksum(MESSAGE) == data[5]):
                             realdata1= ''
                             #print("heeeeeeeeeeeeereeeeeeeeeeeeee")
                             self.realdata = self.realdata + str(data[4][:-8])
@@ -313,7 +313,8 @@ class Proxy :
                             UDP_PORT = 5018
                             UDP_PORT = 5010 + self.turn
                             print("port:", UDP_PORT)
-                            ack = bytes(str(self.NR), 'utf-8')
+                            # ack = bytes(str(self.NR), 'utf-8')
+                            ack = str(self.NR).encode('utf-8')
                             print("NR:", ack, self.NR, NS)
 
                             sock = socket.socket(socket.AF_INET,  # Internet
@@ -418,9 +419,9 @@ class Proxy :
 
                     else:
 
-                        print("received data:", data)
+                        print("received data:", data.decode('utf-8'))
 
-                        data1 = str(data).split('!@#$%^&*()_+')
+                        data1 = data.decode('utf-8').split('!@#$%^&*()_+')
 
                         dns_type = str(data1[0][2:])
 
@@ -447,7 +448,7 @@ class Proxy :
                             if data in i:
                                 print('here', self.DNSCache)
 
-                                conn.send(bytes(i[1], 'utf-8'))
+                                conn.send(i[1].encode('utf-8'))
 
                                 self.inDNSCache = 1
 
@@ -515,7 +516,7 @@ class Proxy :
 
                                     result = 'no answer'
 
-                                    conn.send(bytes(result, 'utf-8'))  # echo
+                                    conn.send(result.encode('utf-8'))  # echo
 
                                     conn.close()
 
@@ -567,7 +568,7 @@ class Proxy :
                                     self.dnsindex = 0
 
                             if not noanswer:
-                                conn.send(bytes(result, 'utf-8'))  # echo
+                                conn.send(result.encode('utf-8'))  # echo
 
                             # conn.close()
 

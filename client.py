@@ -33,7 +33,7 @@ class Client:
         host = input()
         # request = "type=CNAME server=8.8.4.4 target=aut.ac.ir"
         request = "GET / HTTP/1.1"
-        host = "translate.google.com"
+        host = "aut.ac.ir"
         get_req = request.split('/')
         dns_req = request.split(' ')
         if get_req[0] == 'GET ' and get_req[1] == ' HTTP' and (get_req[2] == '1.1' or get_req[2] == '1.0'):
@@ -107,8 +107,8 @@ class Client:
                     checksum = self.checksum1(msg)
                     msg = msg + '\r\n\r\n'
                     newmsg = msg + '!@#$%^&*()_+' + str(checksum)
-                    MESSAGE = bytes(newmsg, 'utf-8')
-
+                    MESSAGE = newmsg.encode('utf-8')
+#aut.ac.ir!@#$%^&*()_+80!@#$%^&*()_+0!@#$%^&*()_+0!@#$%^&*()_+GET / HTTP/1.1
                     sock = socket.socket(socket.AF_INET,  # Internet
                                          socket.SOCK_DGRAM)  # UDP
                     sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
@@ -127,7 +127,9 @@ class Client:
                         sock.settimeout(1)
                         try:
                             data2, addr = sock.recvfrom(10000)
-                            NR = str(data2)[2]
+                            print("======")
+                            print(data2)
+                            NR = data2.decode('utf-8')
                             print('ack : ', NR, NS)
                             sock.close()
                             if int(NR) == int(not bool(NS)):
@@ -158,26 +160,29 @@ class Client:
 
                     if data:
 
-                        data = str(data).split("!@#$%^&*()_+")
-                        NS = int(data[0][2:])
+                        data = data.decode('utf-8').split("!@#$%^&*()_+")
+                        NS = int(data[0])
                         MF = int(data[1])
-                        MESSAGE = data[0][2:] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2]
+                        MESSAGE = data[0] + '!@#$%^&*()_+' + data[1] + '!@#$%^&*()_+' + data[2]
                         # MESSAGE = MESSAGE.replace('\\\\', '\\')
 
-                        MESSAGE2 = MESSAGE.split('\\\\')
-                        MESSAGE = ''
-                        c = 0
-                        for i in MESSAGE2:
-                            if not c:
-                                MESSAGE = i
-                                c = 1
-                            else:
-                                MESSAGE += '\\' + i
+                        # MESSAGE2 = MESSAGE.split('\\\\')
+                        # MESSAGE = ''
+                        # c = 0
+                        # for i in MESSAGE2:
+                        #     if not c:
+                        #         MESSAGE = i
+                        #         c = 1
+                        #     else:
+                        #         MESSAGE += '\\' + i
 
-                        MESSAGE = MESSAGE.replace('\\xa0', ' ')
-                        MESSAGE = MESSAGE.replace('\\xc2', '')
-                        MESSAGE = ''.join([i if ord(i) < 128 else ' ' for i in MESSAGE])
-                        if NS == int(not bool(NR)) and (self.checksum1(MESSAGE) == data[3][:-9]):
+                        # MESSAGE = MESSAGE.replace('\\xa0', ' ')
+                        # MESSAGE = MESSAGE.replace('\\xc2', '')
+                        # MESSAGE = ''.join([i if ord(i) < 128 else ' ' for i in MESSAGE])
+                        print("checckkkkkkP: ",MESSAGE )
+                        print("checckkkkkkP: ",self.checksum1(MESSAGE))
+                        print("checckkkkkkP: ", data[3][:-4])
+                        if NS == int(not bool(NR)) and (self.checksum1(MESSAGE) == data[3][:-4]):
                             print('wtffffffffff')
                             if MF == 1:
                                 realdata = realdata + str(data[2][:-8])
@@ -189,7 +194,7 @@ class Client:
 
                             UDP_PORT = 5018
                             UDP_PORT = 5030 + self.turn
-                            ack = bytes(str(NR), 'utf-8')
+                            ack = str(NR).encode('utf-8')
                             sock = socket.socket(socket.AF_INET,  # Internet
                                                  socket.SOCK_DGRAM)  # UDP
 
@@ -212,16 +217,17 @@ class Client:
                 TCP_IP = bytes(self.IP, 'utf-8')
                 TCP_PORT = 5016
                 BUFFER_SIZE = 10000
-                MESSAGE = bytes(dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+' + server + '!@#$%^&*()_+', 'utf-8')
+                x = dnstype + '!@#$%^&*()_+' + target + '!@#$%^&*()_+' + server + '!@#$%^&*()_+'
+                MESSAGE = x.encode('utf-8')
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect((TCP_IP, TCP_PORT))
                 s.send(MESSAGE)
                 data = s.recv(BUFFER_SIZE)
                 s.close()
-                data = str(data).split('@')
+                data = data.decode('utf-8').split('@')
                 print('received data: ', data[0])
-                if len(data)==2:
+                if len(data) == 2:
                     print('authoritative flag : ', data[1])
 
             self.file.close()
